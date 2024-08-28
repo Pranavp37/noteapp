@@ -8,8 +8,8 @@ class ListContainer extends StatelessWidget {
       required this.date,
       this.onDelete,
       this.onEdit,
-      this.onShare});
-
+      this.onShare, required this.col});
+  final Color col;
   final String title;
   final String desc;
   final String date;
@@ -28,8 +28,8 @@ class ListContainer extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         // height: MediaQuery.of(context).size.height / 5,
         height: 200,
-        decoration: BoxDecoration(
-            color: Colors.black, borderRadius: BorderRadius.circular(18)),
+        decoration:
+            BoxDecoration(color: col, borderRadius: BorderRadius.circular(18)),
         child: Column(
           children: [
             Row(
