@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:noteapp/utils/color_constant.dart/app_sessions.dart';
 import 'package:noteapp/views/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  final box = await Hive.openBox('noteBox');
+  final box = await Hive.openBox(AppSessions.noteBox);
   runApp(const MyApp());
 }
 

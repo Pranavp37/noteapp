@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:noteapp/dummy_db.dart';
+import 'package:noteapp/utils/color_constant.dart/app_sessions.dart';
 import 'package:noteapp/utils/color_constant.dart/color_const.dart';
 
 import 'package:noteapp/views/widgets/List_Container/list_container.dart';
@@ -16,13 +18,23 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController titlecon = TextEditingController();
   TextEditingController descon = TextEditingController();
   TextEditingController datecon = TextEditingController();
-  // List<Map<String, String>> llsit = [];
+
   List noteColor = [
     ColorConst.darkGreen,
     ColorConst.lighBrown,
     ColorConst.lighMaron,
     ColorConst.lightBlue
   ];
+  List noteKeys = [];
+  final notebox = Hive.box(AppSessions.noteBox);
+
+  @override
+  void initState() {
+    noteKeys = notebox.keys.toList();
+    setState(() {});
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         // backgroundColor: noteColor[selectedIndex],
         title: Text('To-Do App'),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+        titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
         centerTitle: true,
       ),
       body: Padding(
@@ -48,33 +60,36 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               child: ListView.separated(
-                  itemBuilder: (context, index) => ListContainer(
-                        col: noteColor[DummyDb.notesList[index]['color']],
-                        desc: DummyDb.notesList[index]['desc'],
-                        title: DummyDb.notesList[index]['titile'],
-                        date: DummyDb.notesList[index]['date'],
-                        onDelete: () {
-                          setState(() {
-                            DummyDb.notesList.removeAt(index);
-                          });
-                        },
-                        onEdit: () {
-                          setState(() {});
-                          titlecon.text = DummyDb.notesList[index]['titile'];
-                          descon.text = DummyDb.notesList[index]['desc'];
-                          datecon.text = DummyDb.notesList[index]['date'];
+                  itemBuilder: (context, index) {
+                    final currentNote = notebox.get(noteKeys[index]);
+                    return ListContainer(
+                      col: noteColor[currentNote['color']],
+                      desc: currentNote['titile'],
+                      title: currentNote['desc'],
+                      date: currentNote['date'],
+                      onDelete: () {
+                        setState(() {
+                          noteKeys = notebox.keys.toList();
+                        });
+                      },
+                      onEdit: () {
+                        setState(() {});
+                        titlecon.text = currentNote['titile'];
+                        descon.text = currentNote['desc'];
+                        datecon.text = currentNote['date'];
 
-                          showModelBottomSheet(context,
-                              isedit: true, index: index);
-                        },
-                      ),
+                        showModelBottomSheet(context,
+                            isedit: true, index: index);
+                      },
+                    );
+                  },
                   separatorBuilder: (context, index) => Divider(
                         endIndent: 40,
                         indent: 40,
                         color: Colors.black,
                         thickness: 1,
                       ),
-                  itemCount: DummyDb.notesList.length),
+                  itemCount: noteKeys.length),
             )
           ],
         ),
@@ -89,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, bottonsetState) {
-          selectedIndex = selectedIndex ?? 0;
           return Container(
             color: noteColor[selectedIndex],
             child: Padding(
@@ -203,19 +217,34 @@ class _HomeScreenState extends State<HomeScreen> {
                           GestureDetector(
                             onTap: () {
                               if (isedit) {
-                                DummyDb.notesList[index!] = {
-                                  'titile': titlecon.text,
-                                  'desc': descon.text,
-                                  'date': datecon.text,
-                                  'color': selectedIndex,
-                                };
-                              } else {
-                                DummyDb.notesList.add({
+                                notebox.put(noteKeys[index!], {
                                   'titile': titlecon.text,
                                   'desc': descon.text,
                                   'date': datecon.text,
                                   'color': selectedIndex,
                                 });
+                                // DummyDb.notesList[index!] = {
+                                //   'titile': titlecon.text,
+                                //   'desc': descon.text,
+                                //   'date': datecon.text,
+                                //   'color': selectedIndex,
+                                // };
+                              } else {
+                                notebox.add({
+                                  'titile': titlecon.text,
+                                  'desc': descon.text,
+                                  'date': datecon.text,
+                                  'color': selectedIndex,
+                                });
+                                noteKeys = notebox.keys.toList();
+                                print(notebox.values);
+
+                                // DummyDb.notesList.add({
+                                //   'titile': titlecon.text,
+                                //   'desc': descon.text,
+                                //   'date': datecon.text,
+                                //   'color': selectedIndex,
+                                // });
                               }
                               setState(() {});
                               Navigator.of(context).pop(context);
